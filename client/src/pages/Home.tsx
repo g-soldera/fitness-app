@@ -94,20 +94,59 @@ const playTone = (type: any) => {
   }
 };
 
+// Utilitários de localStorage
+const StorageManager = {
+  saveState: (key: string, value: any) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error('Erro ao salvar no localStorage:', e);
+    }
+  },
+  getState: (key: string, defaultValue: any) => {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : defaultValue;
+    } catch (e) {
+      console.error('Erro ao ler do localStorage:', e);
+      return defaultValue;
+    }
+  },
+};
+
 const App = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [currentUser, setCurrentUser] = useState('ela');
+  const [currentUser, setCurrentUser] = useState<any>(() => 
+    StorageManager.getState('currentUser', 'ela')
+  );
   const [selectedMeal, setSelectedMeal] = useState<any>(null);
   
   const [timeLeft, setTimeLeft] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
   const timerRef = useRef<any>(null);
 
-  const [hiitConfig, setHiitConfig] = useState<any>({ isOpen: false, level: 'básico', equipment: 'esteira', duration: 20 });
+  const [hiitConfig, setHiitConfig] = useState<any>(() => 
+    StorageManager.getState('hiitConfig', { isOpen: false, level: 'básico', equipment: 'esteira', duration: 20 })
+  );
   const [hiitActive, setHiitActive] = useState(false);
-  const [hiitState, setHiitState] = useState<any>({
-    plan: [], currentPhase: 0, timeLeftInPhase: 0, isPaused: false, totalTime: 0, elapsedTotal: 0
-  });
+  const [hiitState, setHiitState] = useState<any>(() =>
+    StorageManager.getState('hiitState', {
+      plan: [], currentPhase: 0, timeLeftInPhase: 0, isPaused: false, totalTime: 0, elapsedTotal: 0
+    })
+  );
+
+  // Salvar estado no localStorage quando mudar
+  useEffect(() => {
+    StorageManager.saveState('currentUser', currentUser);
+  }, [currentUser]);
+
+  useEffect(() => {
+    StorageManager.saveState('hiitConfig', hiitConfig);
+  }, [hiitConfig]);
+
+  useEffect(() => {
+    StorageManager.saveState('hiitState', hiitState);
+  }, [hiitState]);
 
   const getDaysUntil27th = () => {
     const today = new Date();
@@ -278,7 +317,7 @@ const App = () => {
 
   const startHiit = () => {
     const plan = generateHiitPlan(hiitConfig.level, hiitConfig.equipment, hiitConfig.duration);
-    const totalTime = plan.reduce((sum, p) => sum + p.duration, 0);
+    const totalTime = plan.reduce((sum: any, p: any) => sum + p.duration, 0);
     setHiitState({
       plan,
       currentPhase: 0,
