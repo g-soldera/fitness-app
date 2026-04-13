@@ -5,7 +5,7 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react(), tailwindPlugin()],
-  base: '/fitness-app/',
+  base: '/',
   root: 'client',
   build: {
     outDir: '../dist/public',
